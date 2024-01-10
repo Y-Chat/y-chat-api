@@ -13,6 +13,7 @@ paths:
       summary: Send a message
       operationId: sendMessage
       requestBody:
+        required: true
         content:
           application/json:
             schema:

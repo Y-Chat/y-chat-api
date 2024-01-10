@@ -13,6 +13,7 @@ paths:
       summary: Create a new user
       operationId: createUser
       requestBody:
+        required: true
         content:
           application/json:
             schema:
@@ -63,6 +64,7 @@ paths:
       summary: Create a group
       operationId: createGroup
       requestBody:
+        required: true
         content:
           application/json:
             schema:
@@ -103,6 +105,7 @@ paths:
       summary: Update a chat with another user
       operationId: updateChat
       requestBody:
+        required: true
         content:
           application/json:
             schema:

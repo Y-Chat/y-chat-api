@@ -13,6 +13,7 @@ paths:
       summary: Post media
       operationId: postMedia
       requestBody:
+        required: true
         content:
           multipart/form-data:
             schema:
