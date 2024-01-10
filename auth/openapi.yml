@@ -1,0 +1,118 @@
+openapi: 3.0.3
+info:
+  title: Y-Chat Auth API
+  description: Y-Chat Auth API
+  version: 1.0.0
+servers:
+  - url: "http://localhost:7501"
+security:
+  - bearerAuth: []
+paths:
+  /validateToken:
+    get:
+      summary: Validate the jwt token
+      operationId: validateToken
+      responses:
+        '200':
+          $ref: '#/components/responses/EmptyResponse'
+        '400':
+            $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+  /resetPassword:
+    get:
+      summary: Request a password reset mail
+      operationId: requestPasswordResetMail
+      responses:
+        '200':
+          $ref: '#/components/responses/EmptyResponse'
+        '400':
+            $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+  /internal/validateToken:
+    get:
+      summary: Validate the jwt token
+      operationId: validateTokenInternal
+      responses:
+        '200':
+          $ref: '#/components/responses/EmptyResponse'
+        '400':
+            $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+  responses:
+    EmptyResponse:
+      description: Empty response
+    BadRequestResponse:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 400
+            message: Bad request
+    ForbiddenResponse:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 401
+            message: Forbidden
+    UnauthorizedResponse:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 403
+            message: Unauthorized
+    NotFoundResponse:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 404
+            message: Not found
+    AlreadyExistsResponse:
+      description: The resource already exists
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 409
+            message: Already Exists
+    UnprocessableEntityResponse:
+      description: Unprocessable Entity
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 422
+            message: Unproccessable Entity

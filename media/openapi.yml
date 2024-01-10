@@ -1,0 +1,161 @@
+openapi: 3.0.3
+info:
+  title: Y-Chat Media API
+  description: Y-Chat Media API
+  version: 1.0.0
+servers:
+  - url: "http://localhost:7506"
+security:
+  - bearerAuth: []
+paths:
+  /upload:
+    post:
+      summary: Post media
+      operationId: postMedia
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                fileName:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          $ref: '#/components/responses/MediaDataResponse'
+        '400':
+            $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+  /data:
+    get:
+      summary: Get media data
+      operationId: getMedia
+      parameters:
+        - $ref: '#/components/parameters/mediaDataId'
+      responses:
+        '200':
+          $ref: '#/components/responses/MediaResponse'
+        '400':
+            $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    mediaDataId:
+      in: query
+      required: true
+      name: mediaDataId
+      schema:
+        type: string
+        format: ObjectId
+  schemas:
+    MediaData:
+      type: object
+      required:
+        - id
+        - uploaderId
+        - fileName
+        - timestamp
+      properties:
+        id:
+          type: string
+          format: ObjectId
+          readOnly: true
+        uploaderId:
+          type: string
+          format: ObjectId
+          readOnly: true
+        fileName:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+          readOnly: true
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+  responses:
+    MediaResponse:
+      description: Media response
+      content:
+        application/octet-stream:
+            schema:
+              type: string
+              format: binary
+    MediaDataResponse:
+      description: Media response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MediaData'
+    EmptyResponse:
+      description: Empty response
+    BadRequestResponse:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 400
+            message: Bad request
+    ForbiddenResponse:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 401
+            message: Forbidden
+    UnauthorizedResponse:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 403
+            message: Unauthorized
+    NotFoundResponse:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 404
+            message: Not found
+    AlreadyExistsResponse:
+      description: The resource already exists
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 409
+            message: Already Exists
+    UnprocessableEntityResponse:
+      description: Unprocessable Entity
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 422
+            message: Unproccessable Entity

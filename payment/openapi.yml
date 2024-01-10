@@ -1,0 +1,166 @@
+openapi: 3.0.3
+info:
+  title: Y-Chat Payment API
+  description: Y-Chat Payment API
+  version: 1.0.0
+servers:
+  - url: "http://localhost:7505"
+security:
+  - bearerAuth: []
+paths:
+  /funds:
+    get:
+      summary: Get fund balance
+      operationId: getFunds
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      responses:
+        '200':
+          $ref: '#/components/responses/AccountBalanceResponse'
+        '400':
+            $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+  /handleWebhook:
+    post:
+      summary: Handle webhook
+      operationId: handleWebhook
+      security: []
+      responses:
+        '200':
+          $ref: '#/components/responses/EmptyResponse'
+        '400':
+            $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    userId:
+      in: query
+      required: true
+      name: userId
+      schema:
+        type: string
+        format: ObjectId
+  schemas:
+    AccountBalance:
+      type: object
+      required:
+        - id
+        - userId
+        - amount
+      properties:
+        id:
+          type: string
+          format: ObjectId
+          readOnly: true
+        userId:
+          type: string
+          format: ObjectId
+        amount:
+          type: number
+    Transaction:
+      type: object
+      required:
+        - id
+        - fromUserId
+        - toUserId
+        - amount
+        - timestamp
+      properties:
+        id:
+          type: string
+          format: ObjectId
+          readOnly: true
+        fromUserId:
+          type: string
+          format: ObjectId
+        toUserId:
+          type: string
+          format: ObjectId
+        amount:
+          type: number
+          minimum: 0
+        timestamp:
+          type: string
+          format: date-time  
+          readOnly: true
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+  responses:
+    AccountBalanceResponse:
+      description: Account balance response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AccountBalance'
+    EmptyResponse:
+      description: Empty response
+    BadRequestResponse:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 400
+            message: Bad request
+    ForbiddenResponse:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 401
+            message: Forbidden
+    UnauthorizedResponse:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 403
+            message: Unauthorized
+    NotFoundResponse:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 404
+            message: Not found
+    AlreadyExistsResponse:
+      description: The resource already exists
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 409
+            message: Already Exists
+    UnprocessableEntityResponse:
+      description: Unprocessable Entity
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 422
+            message: Unproccessable Entity

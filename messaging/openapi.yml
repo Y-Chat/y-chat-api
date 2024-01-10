@@ -1,0 +1,213 @@
+openapi: 3.0.3
+info:
+  title: Y-Chat Messaging API
+  description: Y-Chat Messaging API
+  version: 1.0.0
+servers:
+  - url: "http://localhost:7503"
+security:
+  - bearerAuth: []
+paths:
+  /message:
+    post:  
+      summary: Send a message
+      operationId: sendMessage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Message'
+      responses:
+        '200':
+          $ref: '#/components/responses/MessageResponse'
+        '400':
+            $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+  /messages:
+    get:  
+      summary: Get messages of a chat
+      operationId: getMessages
+      parameters:
+        - $ref: '#/components/parameters/chatId'
+        - $ref: '#/components/parameters/fromDate'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          $ref: '#/components/responses/MessagesResponse'
+        '400':
+            $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    page:
+      in: query
+      required: false
+      name: page
+      schema:
+        type: integer
+        format: int32
+    pageSize:
+      in: query
+      required: false
+      name: pageSize
+      schema:
+        type: integer
+        format: int32
+    chatId:
+      in: query
+      required: true
+      name: chatId
+      schema:
+        type: string
+        format: ObjectId
+    fromDate:
+      in: query
+      required: true
+      name: fromDate
+      schema:
+        type: string
+        format: date-time
+  schemas:
+    Message:
+      type: object
+      required:
+        - id
+        - senderId
+        - chatId
+        - sentTimestamp
+        - message
+      properties:
+        id:
+          type: string
+          format: ObjectId
+          readOnly: true
+        senderId:
+          type: string
+          format: ObjectId
+          readOnly: true
+        chatId:
+          type: string
+          format: ObjectId
+        transactionId:
+          type: string
+          format: ObjectId
+          readOnly: true
+        mediaId:
+          type: string
+          format: ObjectId
+        sentTimestamp:
+          type: string
+          format: date-time
+          readOnly: true
+        message:
+          type: string
+    PageInfo:
+      type: object
+      required:
+        - page
+        - pageSize
+      properties:
+        page:
+          type: integer
+          format: int32
+        pageSize:
+          type: integer
+          format: int32
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+  responses:
+    MessagesResponse:
+      description: Message response
+      content:
+        application/json:
+          schema:
+            type: object
+            required: 
+              - messages
+              - pageInfo
+            properties:
+              messages:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Message'
+              pageInfo:
+                $ref: '#/components/schemas/PageInfo'
+    MessageResponse:
+      description: Message response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Message'
+    EmptyResponse:
+      description: Empty response
+    BadRequestResponse:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 400
+            message: Bad request
+    ForbiddenResponse:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 401
+            message: Forbidden
+    UnauthorizedResponse:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 403
+            message: Unauthorized
+    NotFoundResponse:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 404
+            message: Not found
+    AlreadyExistsResponse:
+      description: The resource already exists
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 409
+            message: Already Exists
+    UnprocessableEntityResponse:
+      description: Unprocessable Entity
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 422
+            message: Unproccessable Entity

@@ -1,0 +1,95 @@
+asyncapi: 2.5.0
+info:
+  title: Y-Chat Notification API
+  version: 1.0.0
+  description: |
+    Y-Chat Notification API
+defaultContentType: application/json
+servers:
+    mtls-connections:
+      url: localhost:28092
+      protocol: kafka
+      security:
+        - certs: []
+channels:
+  notification/notification:
+    publish:
+      summary: Create new notification
+      operationId: createNotification
+      message:
+        $ref: '#/components/messages/NotificationMessage'
+    subscribe:
+      summary: Received a new notification
+      operationId: onNotification
+      message:
+        $ref: '#/components/messages/NotificationMessage'
+components:
+  securitySchemes:
+    certs:
+      type: X509
+  messages:
+    NotificationMessage:
+      name: transactionMessage
+      payload:
+        $ref: '#/components/schemas/Notification'
+  schemas:
+    Notification:
+      type: object
+      properties:
+        newMessage:
+          type:  object
+          required:
+            - chatId
+          properties:
+            chatId:
+              type: string
+              format: ObjectId
+        updatedMessage:
+          type:  object
+          required:
+            - chatId
+            - messageId
+          properties:
+            chatId:
+              type: string
+              format: ObjectId
+            messageId:
+              type: string
+              format: ObjectId
+        mediaUploaded:
+          type:  object
+          required:
+            - chatId
+            - messageId
+            - mediaId
+          properties:
+            chatId:
+              type: string
+              format: ObjectId
+            messageId:
+              type: string
+              format: ObjectId
+            mediaId:
+              type: string
+              format: ObjectId
+        transactionComplete:
+          chatId:
+              type: string
+              format: ObjectId
+          messageId:
+            type: string
+            format: ObjectId
+          transactionId:
+            type: string
+            format: ObjectId
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string

@@ -1,0 +1,99 @@
+asyncapi: 3.0.0
+info:
+  title: Y-Chat Payment API
+  version: 1.0.0
+  description: |
+    Y-Chat Payment API
+defaultContentType: application/json
+servers:
+  mtls-connections:
+    host: 'localhost:28092'
+    protocol: kafka
+    security:
+      - $ref: '#/components/securitySchemes/certs'
+channels:
+  payment/transaction:
+    address: payment/transaction
+    messages:
+      createTransaction.message:
+        $ref: '#/components/messages/TransactionMessage'
+      onTransaction.message:
+        $ref: '#/components/messages/TransactionMessage'
+operations:
+  createTransaction:
+    action: receive
+    channel:
+      $ref: '#/channels/payment~1transaction'
+    summary: Create transaction
+    messages:
+      - $ref: '#/channels/payment~1transaction/messages/createTransaction.message'
+  onTransaction:
+    action: send
+    channel:
+      $ref: '#/channels/payment~1transaction'
+    summary: New transaction received
+    messages:
+      - $ref: '#/channels/payment~1transaction/messages/onTransaction.message'
+components:
+  securitySchemes:
+    certs:
+      type: X509
+  messages:
+    TransactionMessage:
+      name: transactionMessage
+      payload:
+        $ref: '#/components/schemas/Transaction'
+  schemas:
+    AccountBalance:
+      type: object
+      required:
+        - id
+        - userId
+        - amount
+      properties:
+        id:
+          type: string
+          format: ObjectId
+          readOnly: true
+        userId:
+          type: string
+          format: ObjectId
+        amount:
+          type: number
+    Transaction:
+      type: object
+      required:
+        - id
+        - fromUserId
+        - toUserId
+        - amount
+        - timestamp
+      properties:
+        id:
+          type: string
+          format: ObjectId
+          readOnly: true
+        fromUserId:
+          type: string
+          format: ObjectId
+        toUserId:
+          type: string
+          format: ObjectId
+        amount:
+          type: number
+          minimum: 0
+        timestamp:
+          type: string
+          format: date-time
+          readOnly: true
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
