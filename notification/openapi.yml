@@ -1,0 +1,106 @@
+openapi: 3.0.3
+info:
+  title: Y-Chat Notification API
+  description: Y-Chat Notification API
+  version: 1.0.0
+servers:
+  - url: "http://localhost:3000/api/v1"
+security:
+  - bearerAuth: []
+paths:
+  /notification/token:
+    post:
+      summary: Update current notification token
+      operationId: updateToken
+      parameters:
+        - $ref: '#/components/parameters/notificationToken'
+      responses:
+        '200':
+          $ref: '#/components/responses/EmptyResponse'
+        '400':
+            $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    notificationToken:
+      in: query
+      required: true
+      name: notificationToken
+      schema:
+        type: string
+        format: ObjectId
+  schemas:
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+  responses:
+    EmptyResponse:
+      description: Empty response
+    BadRequestResponse:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 400
+            message: Bad request
+    ForbiddenResponse:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 401
+            message: Forbidden
+    UnauthorizedResponse:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 403
+            message: Unauthorized
+    NotFoundResponse:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 404
+            message: Not found
+    AlreadyExistsResponse:
+      description: The resource already exists
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 409
+            message: Already Exists
+    UnprocessableEntityResponse:
+      description: Unprocessable Entity
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 422
+            message: Unproccessable Entity
