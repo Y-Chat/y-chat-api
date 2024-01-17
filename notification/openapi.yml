@@ -34,7 +34,6 @@ components:
       name: notificationToken
       schema:
         type: string
-        format: ObjectId
   schemas:
     Error:
       type: object
