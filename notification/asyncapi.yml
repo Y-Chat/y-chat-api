@@ -1,4 +1,4 @@
-asyncapi: 3.0.0
+asyncapi: 2.5.0
 info:
   title: Y-Chat Notification API
   version: 1.0.0
@@ -6,36 +6,22 @@ info:
     Y-Chat Notification API
 defaultContentType: application/json
 servers:
-  dev:
-    host: 'localhost:28092'
-    protocol: kafka
+    mtls-connections:
+      url: localhost:28092
+      protocol: kafka
 channels:
   notification-notification:
-    address: notification-notification
-    messages:
-      createNotification.message:
+    publish:
+      summary: Create new notification
+      operationId: createNotification
+      message:
         $ref: '#/components/messages/NotificationMessage'
-      onNotification.message:
+    subscribe:
+      summary: Received a new notification
+      operationId: onNotification
+      message:
         $ref: '#/components/messages/NotificationMessage'
-operations:
-  createNotification:
-    action: receive
-    channel:
-      $ref: '#/channels/notification-notification'
-    summary: Create new notification
-    messages:
-      - $ref: '#/channels/notification-notification/messages/createNotification.message'
-  onNotification:
-    action: send
-    channel:
-      $ref: '#/channels/notification-notification'
-    summary: Received a new notification
-    messages:
-      - $ref: '#/channels/notification-notification/messages/onNotification.message'
 components:
-  securitySchemes:
-    certs:
-      type: X509
   messages:
     NotificationMessage:
       name: transactionMessage
@@ -46,7 +32,7 @@ components:
       type: object
       properties:
         newMessage:
-          type: object
+          type:  object
           required:
             - chatId
           properties:
@@ -54,7 +40,7 @@ components:
               type: string
               format: ObjectId
         updatedMessage:
-          type: object
+          type:  object
           required:
             - chatId
             - messageId
@@ -66,7 +52,7 @@ components:
               type: string
               format: ObjectId
         mediaUploaded:
-          type: object
+          type:  object
           required:
             - chatId
             - messageId
@@ -83,8 +69,8 @@ components:
               format: ObjectId
         transactionComplete:
           chatId:
-            type: string
-            format: ObjectId
+              type: string
+              format: ObjectId
           messageId:
             type: string
             format: ObjectId
