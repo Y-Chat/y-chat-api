@@ -6,11 +6,9 @@ info:
     Y-Chat Payment API
 defaultContentType: application/json
 servers:
-  mtls-connections:
+  dev:
     host: 'localhost:28092'
     protocol: kafka
-    security:
-      - $ref: '#/components/securitySchemes/certs'
 channels:
   payment-transaction:
     address: payment/transaction
