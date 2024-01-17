@@ -6,7 +6,7 @@ info:
     Y-Chat Notification API
 defaultContentType: application/json
 servers:
-    mtls-connections:
+    dev:
       url: localhost:28092
       protocol: kafka
 channels:

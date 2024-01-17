@@ -1,4 +1,4 @@
-asyncapi: 3.0.0
+asyncapi: 2.5.0
 info:
   title: Y-Chat Payment API
   version: 1.0.0
@@ -6,36 +6,22 @@ info:
     Y-Chat Payment API
 defaultContentType: application/json
 servers:
-  dev:
-    host: 'localhost:28092'
-    protocol: kafka
+    dev:
+      url: localhost:28092
+      protocol: kafka
 channels:
   payment-transaction:
-    address: payment/transaction
-    messages:
-      createTransaction.message:
+    publish:
+      summary: Create new transaction
+      operationId: createTransaction
+      message:
         $ref: '#/components/messages/TransactionMessage'
-      onTransaction.message:
+    subscribe:
+      summary: New transaction received
+      operationId: onTransaction
+      message:
         $ref: '#/components/messages/TransactionMessage'
-operations:
-  createTransaction:
-    action: receive
-    channel:
-      $ref: '#/channels/payment-transaction'
-    summary: Create transaction
-    messages:
-      - $ref: '#/channels/payment-transaction/messages/createTransaction.message'
-  onTransaction:
-    action: send
-    channel:
-      $ref: '#/channels/payment-transaction'
-    summary: New transaction received
-    messages:
-      - $ref: '#/channels/payment-transaction/messages/onTransaction.message'
 components:
-  securitySchemes:
-    certs:
-      type: X509
   messages:
     TransactionMessage:
       name: transactionMessage
