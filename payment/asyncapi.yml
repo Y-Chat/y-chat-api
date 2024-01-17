@@ -12,7 +12,7 @@ servers:
     security:
       - $ref: '#/components/securitySchemes/certs'
 channels:
-  payment/transaction:
+  payment-transaction:
     address: payment/transaction
     messages:
       createTransaction.message:
@@ -23,17 +23,17 @@ operations:
   createTransaction:
     action: receive
     channel:
-      $ref: '#/channels/payment~1transaction'
+      $ref: '#/channels/payment-transaction'
     summary: Create transaction
     messages:
-      - $ref: '#/channels/payment~1transaction/messages/createTransaction.message'
+      - $ref: '#/channels/payment-transaction/messages/createTransaction.message'
   onTransaction:
     action: send
     channel:
-      $ref: '#/channels/payment~1transaction'
+      $ref: '#/channels/payment-transaction'
     summary: New transaction received
     messages:
-      - $ref: '#/channels/payment~1transaction/messages/onTransaction.message'
+      - $ref: '#/channels/payment-transaction/messages/onTransaction.message'
 components:
   securitySchemes:
     certs:
