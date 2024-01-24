@@ -1,0 +1,516 @@
+openapi: 3.0.3
+info:
+  title: Y-Chat Social API
+  description: Y-Chat Social API
+  version: 1.0.0
+servers:
+  - url: "http://localhost:7502"
+security:
+  - bearerAuth: []
+paths:
+  /user:
+    post:
+      summary: Create a new user
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          $ref: '#/components/responses/UserResponse'
+        '400':
+            $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+    get:
+      summary: Get a user
+      operationId: getUser
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      responses:
+        '200':
+          $ref: '#/components/responses/UserResponse'
+        '400':
+            $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+    delete:
+      summary: Delete own user
+      operationId: deleteUser
+      responses:
+        '200':
+          $ref: '#/components/responses/EmptyResponse'
+        '400':
+            $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+  /group:
+    get:
+      summary: Get a group
+      operationId: getGroup
+      parameters:
+        - $ref: '#/components/parameters/groupId'
+      responses:
+        '200':
+          $ref: '#/components/responses/GroupResponse'
+        '400':
+            $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+    post:
+      summary: Create a group
+      operationId: createGroup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Group'
+      responses:
+        '200':
+          $ref: '#/components/responses/GroupResponse'
+        '400':
+            $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+    delete:
+      summary: Delete a group
+      operationId: deleteGroup
+      parameters:
+        - $ref: '#/components/parameters/groupId'
+      responses:
+        '200':
+          $ref: '#/components/responses/EmptyResponse'
+        '400':
+            $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+  /chat:
+    post:
+      summary: Start a chat with another user
+      operationId: createChat
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      responses:
+        '200':
+          $ref: '#/components/responses/ChatResponse'
+        '400':
+            $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+    patch:
+      summary: Update a chat with another user
+      operationId: updateChat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: 
+                - id
+              properties:
+                id:
+                  type: string
+                  format: ObjectId
+                archived:
+                  type: boolean
+                deleted:
+                  type: boolean
+      responses:
+        '200':
+          $ref: '#/components/responses/ChatResponse'
+        '400':
+            $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+    get:
+      summary: Get chats
+      operationId: getChats
+      parameters:
+        - $ref: '#/components/parameters/archived'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          $ref: '#/components/responses/ChatsResponse'
+        '400':
+            $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+  /blockedUser:
+    get:
+      summary: Get all users blocked by a user
+      operationId: getBlockedUsers
+      parameters:
+        - $ref: '#/components/parameters/userId'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          $ref: '#/components/responses/BlockedUsersResponse'
+        '400':
+            $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+    post:
+      summary: Add a user to the blocklist
+      operationId: addUserToBlacklist
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      responses:
+        '200':
+          $ref: '#/components/responses/EmptyResponse'
+        '400':
+            $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+    delete:
+      summary: Remove a user from the blocklist
+      operationId: removeUserFromBlacklist
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      responses:
+        '200':
+          $ref: '#/components/responses/EmptyResponse'
+        '400':
+            $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+  /groupMember:
+    get:
+      summary: Get all users in a group
+      operationId: getGroupUsers
+      parameters:
+        - $ref: '#/components/parameters/groupId'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          $ref: '#/components/responses/GroupUsersResponse'
+        '400':
+            $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+    post:
+      summary: Add a user to a group
+      operationId: addUserToGroup
+      parameters:
+        - $ref: '#/components/parameters/userId'
+        - $ref: '#/components/parameters/groupId'
+      responses:
+        '200':
+          $ref: '#/components/responses/EmptyResponse'
+        '400':
+            $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+    delete:
+      summary: Remove a user from the group
+      operationId: removeUserFromGroup
+      parameters:
+        - $ref: '#/components/parameters/userId'
+        - $ref: '#/components/parameters/groupId'
+      responses:
+        '200':
+          $ref: '#/components/responses/EmptyResponse'
+        '400':
+            $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+  /internal/isMemberOfChat:
+    get:
+      summary: Get if a user is a member of a chat
+      operationId: isMemeberOfChat
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/chatId'
+        - $ref: '#/components/parameters/userId'
+      responses:
+        '200':
+          $ref: '#/components/responses/IsMemberOfChatResponse'
+        '400':
+            $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    archived:
+      in: query
+      required: false
+      name: archived
+      schema:
+        type: boolean
+    page:
+      in: query
+      required: false
+      name: page
+      schema:
+        type: integer
+        format: int32
+    pageSize:
+      in: query
+      required: false
+      name: pageSize
+      schema:
+        type: integer
+        format: int32
+    groupId:
+      in: query
+      required: true
+      name: groupId
+      schema:
+        type: string
+        format: ObjectId
+    userId:
+      in: query
+      required: true
+      name: userId
+      schema:
+        type: string
+        format: ObjectId
+    chatId:
+      in: query
+      required: true
+      name: chatId
+      schema:
+        type: string
+        format: ObjectId
+  schemas:
+    Chat:
+      type: object
+      required:
+        - id
+        - archived
+        - deleted
+      properties:
+        id:
+          type: string
+          format: ObjectId
+          readOnly: true
+        archived:
+          type: boolean
+        deleted:
+          type: boolean
+        user:
+          $ref: '#/components/schemas/User'
+        group:
+          $ref: '#/components/schemas/Group'
+    Group:
+      type: object
+      required:
+        - id
+        - chatId
+        - name
+        - pictureId
+        - description
+      properties:
+        id:
+          type: string
+          format: ObjectId
+          readOnly: true
+        chatId:
+          type: string
+          format: ObjectId
+        pictureId:
+          type: string
+          format: ObjectId
+        name:
+          type: string
+        description:
+          type: string
+    User:
+      type: object
+      required:
+        - id
+        - firstName
+        - lastName
+        - pictureId
+        - description
+      properties:
+        id:
+          type: string
+          format: ObjectId
+          readOnly: true
+        firstName:
+          type: string
+        lastName:
+          type: string
+        pictureId:
+          type: string
+          format: ObjectId
+        description:
+          type: string
+    PageInfo:
+      type: object
+      required:
+        - page
+        - pageSize
+      properties:
+        page:
+          type: integer
+          format: int32
+        pageSize:
+          type: integer
+          format: int32
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+  responses:
+    IsMemberOfChatResponse:
+      description: Is member of chat response
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - userId
+              - chatId
+              - isMember
+            properties:
+              userId:
+                type: string
+                format: ObjectId
+              chatId:
+                type: string
+                format: ObjectId
+              isMember:
+                type: boolean
+    ChatResponse:
+      description: Chat response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Chat'
+    ChatsResponse:
+      description: Chats response
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - chats
+              - pageInfo
+            properties:
+              chats:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Chat'
+              pageInfo:
+                $ref: '#/components/schemas/PageInfo'
+    GroupUsersResponse:
+      description: Group users response
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - users
+              - pageInfo
+            properties:
+              users:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+              pageInfo:
+                $ref: '#/components/schemas/PageInfo'
+    BlockedUsersResponse:
+      description: Blocked users response
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - users
+              - pageInfo
+            properties:
+              users:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+              pageInfo:
+                $ref: '#/components/schemas/PageInfo'
+    UserResponse:
+      description: User response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/User'
+    GroupResponse:
+      description: Group response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Group'
+    EmptyResponse:
+      description: Empty response
+    BadRequestResponse:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 400
+            message: Bad request
+    ForbiddenResponse:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 401
+            message: Forbidden
+    UnauthorizedResponse:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 403
+            message: Unauthorized
+    NotFoundResponse:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 404
+            message: Not found
+    AlreadyExistsResponse:
+      description: The resource already exists
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 409
+            message: Already Exists
+    UnprocessableEntityResponse:
+      description: Unprocessable Entity
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 422
+            message: Unproccessable Entity

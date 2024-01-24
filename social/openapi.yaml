@@ -1,0 +1,1765 @@
+openapi: 3.0.1
+info:
+  title: Social Service API
+servers:
+- url: http://localhost:38080
+  description: Generated server url
+tags:
+- name: Users Endpoint
+  description: Manage the user as they exist in the Y-Chat domain. The lifetime of
+    a user is owned by the service providing authentication. The user email is transported
+    via the JWT.
+- name: Chats Endpoint
+  description: "Manage chats, an abstraction over group and direct chats. Specifically,\
+    \ all operations common to both group and direct chats. A direct chat cannot be\
+    \ deleted explicitly but is deleted once both users have either been deleted or\
+    \ set the chat status to deleted."
+- name: Groups Endpoint
+  description: "Manage groups, a collection of users with a chat. In reality, a group\
+    \ is also a type of chat, thus the group id can be used at the Chats endpoint.\
+    \ A group cannot be explicitly deleted, it is deleted once all users have left\
+    \ the group. A deleted user automatically leaves the group."
+- name: Internal Endpoint
+  description: Specialised endpoints for the use of internal services. Cannot be requested
+    from outside the API gateway and does not require authentication.
+paths:
+  /users:
+    post:
+      tags:
+      - Users Endpoint
+      summary: Create a user with an initial profile.
+      description: "One cannot create a user which exists already. If the profile\
+        \ description is empty, a default value is used. ProfilePictureId is optional.\
+        \ The other fields are required. RemoveProfilePicture must be null."
+      operationId: createUser
+      parameters:
+      - name: userId
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserProfileDTO'
+        required: true
+      responses:
+        "400":
+          description: Illegal user input
+          content:
+            application/json:
+              schema:
+                type: string
+        "409":
+          description: Entity exists already
+          content:
+            application/json:
+              schema:
+                type: string
+        "404":
+          description: Entity not found
+          content:
+            application/json:
+              schema:
+                type: string
+        "403":
+          description: Limit reached
+          content:
+            application/json:
+              schema:
+                type: string
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
+        "201":
+          description: Created
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/UserDTO'
+  /users/{userId}/blockedUsers:
+    get:
+      tags:
+      - Users Endpoint
+      summary: Fetch the blocklist for a user.
+      description: "Returns a page of ids, profiles, and timestamps when the user\
+        \ has been blocked. Page size is not allowed to exceed 1000."
+      operationId: getBlockedUsers
+      parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: pageable
+        in: query
+        required: true
+        schema:
+          $ref: '#/components/schemas/Pageable'
+      responses:
+        "400":
+          description: Illegal user input
+          content:
+            application/json:
+              schema:
+                type: string
+        "409":
+          description: Entity exists already
+          content:
+            application/json:
+              schema:
+                type: string
+        "404":
+          description: Entity not found
+          content:
+            application/json:
+              schema:
+                type: string
+        "403":
+          description: Limit reached
+          content:
+            application/json:
+              schema:
+                type: string
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/PageBlockedUserDTO'
+    post:
+      tags:
+      - Users Endpoint
+      summary: Add a user to the blocklist.
+      description: A user cannot block themselves. There is a limit on the number
+        of users a user can block. A user cannot block a user that they have already
+        blocked. Returns the same object as getBlockedUsers.
+      operationId: addBlockedUser
+      parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: blockUserId
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "400":
+          description: Illegal user input
+          content:
+            application/json:
+              schema:
+                type: string
+        "409":
+          description: Entity exists already
+          content:
+            application/json:
+              schema:
+                type: string
+        "404":
+          description: Entity not found
+          content:
+            application/json:
+              schema:
+                type: string
+        "403":
+          description: Limit reached
+          content:
+            application/json:
+              schema:
+                type: string
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/BlockedUserDTO'
+    delete:
+      tags:
+      - Users Endpoint
+      summary: Remove a user from the blocklist.
+      description: One cannot remove a user which has not been blocked.
+      operationId: removeBlockedUser
+      parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: unblockUserId
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "400":
+          description: Illegal user input
+          content:
+            application/json:
+              schema:
+                type: string
+        "409":
+          description: Entity exists already
+          content:
+            application/json:
+              schema:
+                type: string
+        "404":
+          description: Entity not found
+          content:
+            application/json:
+              schema:
+                type: string
+        "403":
+          description: Limit reached
+          content:
+            application/json:
+              schema:
+                type: string
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
+        "200":
+          description: OK
+  /groups:
+    post:
+      tags:
+      - Groups Endpoint
+      summary: Create a group with an initial user.
+      description: The initial user is the only member and admin of the newly created
+        group. The name field of group profile is required. If no description is provided
+        a default description will be set. Picture id is optional. Returns the same
+        structure as getGroup.
+      operationId: createGroup
+      parameters:
+      - name: userId
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupProfileDTO'
+        required: true
+      responses:
+        "400":
+          description: Illegal user input
+          content:
+            application/json:
+              schema:
+                type: string
+        "409":
+          description: Entity exists already
+          content:
+            application/json:
+              schema:
+                type: string
+        "404":
+          description: Entity not found
+          content:
+            application/json:
+              schema:
+                type: string
+        "403":
+          description: Limit reached
+          content:
+            application/json:
+              schema:
+                type: string
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
+        "201":
+          description: Created
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/GroupDTO'
+  /groups/{groupId}/members:
+    post:
+      tags:
+      - Groups Endpoint
+      summary: Add a new user to the group.
+      description: The new user is added as a GROUP_MEMBER. One cannot add someone
+        who is already part of the group. Returns the same object as getChatMember.
+      operationId: addGroupMember
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: userId
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "400":
+          description: Illegal user input
+          content:
+            application/json:
+              schema:
+                type: string
+        "409":
+          description: Entity exists already
+          content:
+            application/json:
+              schema:
+                type: string
+        "404":
+          description: Entity not found
+          content:
+            application/json:
+              schema:
+                type: string
+        "403":
+          description: Limit reached
+          content:
+            application/json:
+              schema:
+                type: string
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ChatMemberDTO'
+    delete:
+      tags:
+      - Groups Endpoint
+      summary: Remove a member from a group.
+      description: One cannot remove someone who is not a member of the group.
+      operationId: removeGroupMember
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: userId
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "400":
+          description: Illegal user input
+          content:
+            application/json:
+              schema:
+                type: string
+        "409":
+          description: Entity exists already
+          content:
+            application/json:
+              schema:
+                type: string
+        "404":
+          description: Entity not found
+          content:
+            application/json:
+              schema:
+                type: string
+        "403":
+          description: Limit reached
+          content:
+            application/json:
+              schema:
+                type: string
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
+        "200":
+          description: OK
+  /chats/directChats:
+    post:
+      tags:
+      - Chats Endpoint
+      summary: Create a direct chat between two users.
+      description: A user cannot create a chat with themselves and there cannot exist
+        more than one chat between two users. Returns the same object as getChat.
+        UserId refers to the user in relation to which the ChatDTO should be returned.
+      operationId: createDirectChat
+      parameters:
+      - name: userId
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: otherUserId
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "400":
+          description: Illegal user input
+          content:
+            application/json:
+              schema:
+                type: string
+        "409":
+          description: Entity exists already
+          content:
+            application/json:
+              schema:
+                type: string
+        "404":
+          description: Entity not found
+          content:
+            application/json:
+              schema:
+                type: string
+        "403":
+          description: Limit reached
+          content:
+            application/json:
+              schema:
+                type: string
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
+        "201":
+          description: Created
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ChatDTO'
+  /users/{userId}/settings:
+    get:
+      tags:
+      - Users Endpoint
+      summary: Fetch the settings for a user.
+      description: All returned fields are populated.
+      operationId: getUserSettings
+      parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "400":
+          description: Illegal user input
+          content:
+            application/json:
+              schema:
+                type: string
+        "409":
+          description: Entity exists already
+          content:
+            application/json:
+              schema:
+                type: string
+        "404":
+          description: Entity not found
+          content:
+            application/json:
+              schema:
+                type: string
+        "403":
+          description: Limit reached
+          content:
+            application/json:
+              schema:
+                type: string
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/UserSettingsDTO'
+    patch:
+      tags:
+      - Users Endpoint
+      summary: Update the settings for a user.
+      description: All given fields are updated. Returns the same object as getUserSettings.
+      operationId: updateUserSettings
+      parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserSettingsDTO'
+        required: true
+      responses:
+        "400":
+          description: Illegal user input
+          content:
+            application/json:
+              schema:
+                type: string
+        "409":
+          description: Entity exists already
+          content:
+            application/json:
+              schema:
+                type: string
+        "404":
+          description: Entity not found
+          content:
+            application/json:
+              schema:
+                type: string
+        "403":
+          description: Limit reached
+          content:
+            application/json:
+              schema:
+                type: string
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/UserSettingsDTO'
+  /users/{userId}/profile:
+    get:
+      tags:
+      - Users Endpoint
+      summary: Fetch the profile of a user.
+      description: All returned fields are populated. RemoveProfilePictureId is null.
+      operationId: getUserProfile
+      parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "400":
+          description: Illegal user input
+          content:
+            application/json:
+              schema:
+                type: string
+        "409":
+          description: Entity exists already
+          content:
+            application/json:
+              schema:
+                type: string
+        "404":
+          description: Entity not found
+          content:
+            application/json:
+              schema:
+                type: string
+        "403":
+          description: Limit reached
+          content:
+            application/json:
+              schema:
+                type: string
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/UserProfileDTO'
+    patch:
+      tags:
+      - Users Endpoint
+      summary: Update the profile of a user.
+      description: "All given fields are updated. To remove the profilePictureId,\
+        \ set the field to null and removeProfilePictureId to true. Returns the same\
+        \ object as getUserProfile."
+      operationId: updateUserProfile
+      parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserProfileDTO'
+        required: true
+      responses:
+        "400":
+          description: Illegal user input
+          content:
+            application/json:
+              schema:
+                type: string
+        "409":
+          description: Entity exists already
+          content:
+            application/json:
+              schema:
+                type: string
+        "404":
+          description: Entity not found
+          content:
+            application/json:
+              schema:
+                type: string
+        "403":
+          description: Limit reached
+          content:
+            application/json:
+              schema:
+                type: string
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/UserProfileDTO'
+  /groups/{groupId}/profile:
+    get:
+      tags:
+      - Groups Endpoint
+      summary: Fetch the group profile for a given group.
+      description: All returned fields are populated. RemoveProfilePictureId is null.
+      operationId: getGroupProfile
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "400":
+          description: Illegal user input
+          content:
+            application/json:
+              schema:
+                type: string
+        "409":
+          description: Entity exists already
+          content:
+            application/json:
+              schema:
+                type: string
+        "404":
+          description: Entity not found
+          content:
+            application/json:
+              schema:
+                type: string
+        "403":
+          description: Limit reached
+          content:
+            application/json:
+              schema:
+                type: string
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/GroupProfileDTO'
+    patch:
+      tags:
+      - Groups Endpoint
+      summary: Update the group profile for a given group.
+      description: "All given fields are updated. To remove the profilePictureId,\
+        \ set the field to null and removeProfilePictureId to true."
+      operationId: updateGroupProfile
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupProfileDTO'
+        required: true
+      responses:
+        "400":
+          description: Illegal user input
+          content:
+            application/json:
+              schema:
+                type: string
+        "409":
+          description: Entity exists already
+          content:
+            application/json:
+              schema:
+                type: string
+        "404":
+          description: Entity not found
+          content:
+            application/json:
+              schema:
+                type: string
+        "403":
+          description: Limit reached
+          content:
+            application/json:
+              schema:
+                type: string
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/GroupProfileDTO'
+  /groups/{groupId}/members/{userId}/role:
+    get:
+      tags:
+      - Groups Endpoint
+      summary: Fetch the role of a user for a group.
+      description: "If the user is not part of the group, NOT_A_MEMBER is returned."
+      operationId: getGroupRole
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "400":
+          description: Illegal user input
+          content:
+            application/json:
+              schema:
+                type: string
+        "409":
+          description: Entity exists already
+          content:
+            application/json:
+              schema:
+                type: string
+        "404":
+          description: Entity not found
+          content:
+            application/json:
+              schema:
+                type: string
+        "403":
+          description: Limit reached
+          content:
+            application/json:
+              schema:
+                type: string
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: string
+                enum:
+                - NOT_A_MEMBER
+                - GROUP_MEMBER
+                - GROUP_ADMIN
+    patch:
+      tags:
+      - Groups Endpoint
+      summary: Update the role of a group member for a group.
+      description: One cannot update the role of a user who is not in the group. This
+        endpoint cannot be used to remove someone from a group. NOT_A_MEMBER is not
+        a valid value for this endpoint.
+      operationId: updateGroupRole
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+              enum:
+              - NOT_A_MEMBER
+              - GROUP_MEMBER
+              - GROUP_ADMIN
+        required: true
+      responses:
+        "400":
+          description: Illegal user input
+          content:
+            application/json:
+              schema:
+                type: string
+        "409":
+          description: Entity exists already
+          content:
+            application/json:
+              schema:
+                type: string
+        "404":
+          description: Entity not found
+          content:
+            application/json:
+              schema:
+                type: string
+        "403":
+          description: Limit reached
+          content:
+            application/json:
+              schema:
+                type: string
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: string
+                enum:
+                - NOT_A_MEMBER
+                - GROUP_MEMBER
+                - GROUP_ADMIN
+  /chats/{chatId}/members/{userId}/status:
+    get:
+      tags:
+      - Chats Endpoint
+      summary: Fetch the chat status for a given chat and user.
+      description: "If the user is not part of the chat, NOT_A_MEMBER is returned."
+      operationId: getChatStatus
+      parameters:
+      - name: chatId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "400":
+          description: Illegal user input
+          content:
+            application/json:
+              schema:
+                type: string
+        "409":
+          description: Entity exists already
+          content:
+            application/json:
+              schema:
+                type: string
+        "404":
+          description: Entity not found
+          content:
+            application/json:
+              schema:
+                type: string
+        "403":
+          description: Limit reached
+          content:
+            application/json:
+              schema:
+                type: string
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: string
+                enum:
+                - NOT_A_MEMBER
+                - DELETED
+                - ARCHIVED
+                - ACTIVE
+    patch:
+      tags:
+      - Chats Endpoint
+      summary: Update the chat status for a given chat and user.
+      description: "One cannot update the chat status of a user who is not a member\
+        \ of the chat. Direct chats are not allowed to be set to NOT_A_MEMBER. Group\
+        \ chats are not allowed to be set to neither NOT_A_MEMBER nor DELETED. This\
+        \ endpoint cannot be used to exit a group. When both members of a direct chat\
+        \ have the chat as DELETED, then the chat will be deleted."
+      operationId: setChatStatus
+      parameters:
+      - name: chatId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+              enum:
+              - NOT_A_MEMBER
+              - DELETED
+              - ARCHIVED
+              - ACTIVE
+        required: true
+      responses:
+        "400":
+          description: Illegal user input
+          content:
+            application/json:
+              schema:
+                type: string
+        "409":
+          description: Entity exists already
+          content:
+            application/json:
+              schema:
+                type: string
+        "404":
+          description: Entity not found
+          content:
+            application/json:
+              schema:
+                type: string
+        "403":
+          description: Limit reached
+          content:
+            application/json:
+              schema:
+                type: string
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: string
+                enum:
+                - NOT_A_MEMBER
+                - DELETED
+                - ARCHIVED
+                - ACTIVE
+  /users/{userId}:
+    get:
+      tags:
+      - Users Endpoint
+      summary: Fetch the general information about a user.
+      description: "Returns the user id, profile, and settings."
+      operationId: getUser
+      parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "400":
+          description: Illegal user input
+          content:
+            application/json:
+              schema:
+                type: string
+        "409":
+          description: Entity exists already
+          content:
+            application/json:
+              schema:
+                type: string
+        "404":
+          description: Entity not found
+          content:
+            application/json:
+              schema:
+                type: string
+        "403":
+          description: Limit reached
+          content:
+            application/json:
+              schema:
+                type: string
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/UserDTO'
+    delete:
+      tags:
+      - Users Endpoint
+      summary: Delete a user from the Social service.
+      description: The deletion process includes all blocked relations and all chat
+        memberships.
+      operationId: deleteUser
+      parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "400":
+          description: Illegal user input
+          content:
+            application/json:
+              schema:
+                type: string
+        "409":
+          description: Entity exists already
+          content:
+            application/json:
+              schema:
+                type: string
+        "404":
+          description: Entity not found
+          content:
+            application/json:
+              schema:
+                type: string
+        "403":
+          description: Limit reached
+          content:
+            application/json:
+              schema:
+                type: string
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
+        "200":
+          description: OK
+  /users/{userId}/blockedUsers/{isBlockedId}:
+    get:
+      tags:
+      - Users Endpoint
+      summary: Check whether a given user has another user blocked.
+      description: "Returns null, if the user is not blocked. Returns a timestamp\
+        \ corresponding to the block time, if the user is blocked."
+      operationId: isBlockedUser
+      parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: isBlockedId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "400":
+          description: Illegal user input
+          content:
+            application/json:
+              schema:
+                type: string
+        "409":
+          description: Entity exists already
+          content:
+            application/json:
+              schema:
+                type: string
+        "404":
+          description: Entity not found
+          content:
+            application/json:
+              schema:
+                type: string
+        "403":
+          description: Limit reached
+          content:
+            application/json:
+              schema:
+                type: string
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: date-time
+  /internal/canReceive:
+    get:
+      tags:
+      - Internal Endpoint
+      summary: TODO
+      description: TODO define what it returns exactly
+      operationId: canReceive
+      parameters: []
+      responses:
+        "400":
+          description: Illegal user input
+          content:
+            application/json:
+              schema:
+                type: string
+        "409":
+          description: Entity exists already
+          content:
+            application/json:
+              schema:
+                type: string
+        "404":
+          description: Entity not found
+          content:
+            application/json:
+              schema:
+                type: string
+        "403":
+          description: Limit reached
+          content:
+            application/json:
+              schema:
+                type: string
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
+        "200":
+          description: OK
+  /groups/{groupId}:
+    get:
+      tags:
+      - Groups Endpoint
+      summary: Fetch the information about a group.
+      description: Returns the group id and group profile.
+      operationId: getGroup
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "400":
+          description: Illegal user input
+          content:
+            application/json:
+              schema:
+                type: string
+        "409":
+          description: Entity exists already
+          content:
+            application/json:
+              schema:
+                type: string
+        "404":
+          description: Entity not found
+          content:
+            application/json:
+              schema:
+                type: string
+        "403":
+          description: Limit reached
+          content:
+            application/json:
+              schema:
+                type: string
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/GroupDTO'
+  /chats:
+    get:
+      tags:
+      - Chats Endpoint
+      summary: Fetch all chats which a user is part of.
+      description: Returns a page of the same objects that getChat returns. Page size
+        is not allowed to exceed 1000.
+      operationId: getAllChats
+      parameters:
+      - name: userId
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: pageable
+        in: query
+        required: true
+        schema:
+          $ref: '#/components/schemas/Pageable'
+      responses:
+        "400":
+          description: Illegal user input
+          content:
+            application/json:
+              schema:
+                type: string
+        "409":
+          description: Entity exists already
+          content:
+            application/json:
+              schema:
+                type: string
+        "404":
+          description: Entity not found
+          content:
+            application/json:
+              schema:
+                type: string
+        "403":
+          description: Limit reached
+          content:
+            application/json:
+              schema:
+                type: string
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/PageChatDTO'
+  /chats/{chatId}:
+    get:
+      tags:
+      - Chats Endpoint
+      summary: Fetch the general information about a chat for specific user.
+      description: "Returns the chat id and chat type. If it is a group chat, the\
+        \ group profile will also be returned. If it is direct chat, the user profile\
+        \ of the other user will be returned. If the other user of a direct chat does\
+        \ not exist anymore, it will still return the id of the other user but no\
+        \ longer the user profile."
+      operationId: getChat
+      parameters:
+      - name: chatId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: userId
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "400":
+          description: Illegal user input
+          content:
+            application/json:
+              schema:
+                type: string
+        "409":
+          description: Entity exists already
+          content:
+            application/json:
+              schema:
+                type: string
+        "404":
+          description: Entity not found
+          content:
+            application/json:
+              schema:
+                type: string
+        "403":
+          description: Limit reached
+          content:
+            application/json:
+              schema:
+                type: string
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ChatDTO'
+  /chats/{chatId}/members:
+    get:
+      tags:
+      - Chats Endpoint
+      summary: Fetch all members of a chat.
+      description: "Returns the user ids, profiles, and if it is a group chat, also\
+        \ the roles of each member. Page size is not allowed to exceed 1000."
+      operationId: getChatMembers
+      parameters:
+      - name: chatId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: pageable
+        in: query
+        required: true
+        schema:
+          $ref: '#/components/schemas/Pageable'
+      responses:
+        "400":
+          description: Illegal user input
+          content:
+            application/json:
+              schema:
+                type: string
+        "409":
+          description: Entity exists already
+          content:
+            application/json:
+              schema:
+                type: string
+        "404":
+          description: Entity not found
+          content:
+            application/json:
+              schema:
+                type: string
+        "403":
+          description: Limit reached
+          content:
+            application/json:
+              schema:
+                type: string
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/PageChatMemberDTO'
+components:
+  schemas:
+    UserProfileDTO:
+      required:
+      - firstName
+      - lastName
+      type: object
+      properties:
+        firstName:
+          maxLength: 32
+          minLength: 1
+          type: string
+        lastName:
+          maxLength: 32
+          minLength: 1
+          type: string
+        profilePictureId:
+          type: string
+          format: uuid
+        removeProfilePictureId:
+          type: boolean
+        profileDescription:
+          maxLength: 128
+          minLength: 0
+          type: string
+    UserDTO:
+      required:
+      - id
+      - userProfileDTO
+      - userSettingsDTO
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userProfileDTO:
+          $ref: '#/components/schemas/UserProfileDTO'
+        userSettingsDTO:
+          $ref: '#/components/schemas/UserSettingsDTO'
+    UserSettingsDTO:
+      type: object
+      properties:
+        readReceipts:
+          type: boolean
+        lastSeen:
+          type: boolean
+    BlockedUserDTO:
+      required:
+      - blockedAt
+      - id
+      - userProfileDTO
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userProfileDTO:
+          $ref: '#/components/schemas/UserProfileDTO'
+        blockedAt:
+          type: string
+          format: date-time
+    GroupProfileDTO:
+      required:
+      - groupName
+      type: object
+      properties:
+        groupName:
+          maxLength: 32
+          minLength: 1
+          type: string
+        profilePictureId:
+          type: string
+          format: uuid
+        removeProfilePictureId:
+          type: boolean
+        profileDescription:
+          maxLength: 128
+          minLength: 0
+          type: string
+    GroupDTO:
+      required:
+      - groupProfileDTO
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        groupProfileDTO:
+          $ref: '#/components/schemas/GroupProfileDTO'
+    ChatMemberDTO:
+      required:
+      - userId
+      - userProfileDTO
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+        userProfileDTO:
+          $ref: '#/components/schemas/UserProfileDTO'
+        groupRole:
+          type: string
+          enum:
+          - NOT_A_MEMBER
+          - GROUP_MEMBER
+          - GROUP_ADMIN
+    ChatDTO:
+      required:
+      - chatId
+      - chatType
+      type: object
+      properties:
+        chatId:
+          type: string
+          format: uuid
+        chatType:
+          type: string
+          enum:
+          - DIRECT_CHAT
+          - GROUP_CHAT
+        groupProfileDTO:
+          $ref: '#/components/schemas/GroupProfileDTO'
+        userId:
+          type: string
+          format: uuid
+        userProfileDTO:
+          $ref: '#/components/schemas/UserProfileDTO'
+    Pageable:
+      type: object
+      properties:
+        page:
+          minimum: 0
+          type: integer
+          format: int32
+        size:
+          minimum: 1
+          type: integer
+          format: int32
+        sort:
+          type: array
+          items:
+            type: string
+    PageBlockedUserDTO:
+      type: object
+      properties:
+        totalPages:
+          type: integer
+          format: int32
+        totalElements:
+          type: integer
+          format: int64
+        size:
+          type: integer
+          format: int32
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/BlockedUserDTO'
+        number:
+          type: integer
+          format: int32
+        sort:
+          $ref: '#/components/schemas/SortObject'
+        pageable:
+          $ref: '#/components/schemas/PageableObject'
+        numberOfElements:
+          type: integer
+          format: int32
+        first:
+          type: boolean
+        last:
+          type: boolean
+        empty:
+          type: boolean
+    PageableObject:
+      type: object
+      properties:
+        offset:
+          type: integer
+          format: int64
+        sort:
+          $ref: '#/components/schemas/SortObject'
+        pageNumber:
+          type: integer
+          format: int32
+        pageSize:
+          type: integer
+          format: int32
+        paged:
+          type: boolean
+        unpaged:
+          type: boolean
+    SortObject:
+      type: object
+      properties:
+        empty:
+          type: boolean
+        sorted:
+          type: boolean
+        unsorted:
+          type: boolean
+    PageChatDTO:
+      type: object
+      properties:
+        totalPages:
+          type: integer
+          format: int32
+        totalElements:
+          type: integer
+          format: int64
+        size:
+          type: integer
+          format: int32
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatDTO'
+        number:
+          type: integer
+          format: int32
+        sort:
+          $ref: '#/components/schemas/SortObject'
+        pageable:
+          $ref: '#/components/schemas/PageableObject'
+        numberOfElements:
+          type: integer
+          format: int32
+        first:
+          type: boolean
+        last:
+          type: boolean
+        empty:
+          type: boolean
+    PageChatMemberDTO:
+      type: object
+      properties:
+        totalPages:
+          type: integer
+          format: int32
+        totalElements:
+          type: integer
+          format: int64
+        size:
+          type: integer
+          format: int32
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatMemberDTO'
+        number:
+          type: integer
+          format: int32
+        sort:
+          $ref: '#/components/schemas/SortObject'
+        pageable:
+          $ref: '#/components/schemas/PageableObject'
+        numberOfElements:
+          type: integer
+          format: int32
+        first:
+          type: boolean
+        last:
+          type: boolean
+        empty:
+          type: boolean
