@@ -22,6 +22,9 @@ export default function main() {
   const specSocial = load(
     readFileSync("./social/openapi.yml", "utf-8")
   ) as Swagger.SwaggerV3;
+  const specCalling = load(
+      readFileSync("./calling/openapi.yml", "utf-8")
+  ) as Swagger.SwaggerV3;
 
   const mergeResult = merge([
     {
@@ -61,6 +64,12 @@ export default function main() {
       },
       operationSelection: {
         excludeTags: ["Internal Endpoint"],
+      },
+    },
+    {
+      oas: specCalling,
+      pathModification: {
+        prepend: "/calling",
       },
     },
   ]);

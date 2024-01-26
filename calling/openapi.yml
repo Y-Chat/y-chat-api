@@ -1,0 +1,157 @@
+openapi: 3.0.3
+info:
+  title: Y-Chat Calling API
+  description: Y-Chat Calling API
+  version: 1.0.0
+servers:
+  - url: "http://localhost:7506"
+security:
+  - bearerAuth: []
+paths:
+  /call:
+    post:
+      summary: Create a call
+      operationId: createCall
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Call'
+      responses:
+        '200':
+          $ref: '#/components/responses/CallResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    page:
+      in: query
+      required: false
+      name: page
+      schema:
+        type: integer
+        format: int32
+    pageSize:
+      in: query
+      required: false
+      name: pageSize
+      schema:
+        type: integer
+        format: int32
+  schemas:
+    Call:
+      type: object
+      required:
+        - id
+        - callerId
+        - calleeId
+        - timestamp
+      properties:
+        id:
+          type: string
+          format: ObjectId
+          readOnly: true
+        callerId:
+          type: string
+          format: ObjectId
+        calleeId:
+          type: string
+          format: ObjectId
+        timestamp:
+          type: string
+          format: date-time
+          readOnly: true
+    SignalingOffer:
+      type: object
+      required:
+        - type
+        - peerId
+      properties:
+        type:
+          type: string
+        sdp:
+          type: string
+        peerId:
+          type: number
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+  responses:
+    CallResponse:
+      description: Call response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Call'
+    EmptyResponse:
+      description: Empty response
+    BadRequestResponse:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 400
+            message: Bad request
+    ForbiddenResponse:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 401
+            message: Forbidden
+    UnauthorizedResponse:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 403
+            message: Unauthorized
+    NotFoundResponse:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 404
+            message: Not found
+    AlreadyExistsResponse:
+      description: The resource already exists
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 409
+            message: Already Exists
+    UnprocessableEntityResponse:
+      description: Unprocessable Entity
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 422
+            message: Unproccessable Entity
