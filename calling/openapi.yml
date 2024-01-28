@@ -17,10 +17,68 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Call'
+              type: object
+              required:
+                - calleeId
+                - offer
+              properties:
+                calleeId:
+                  type: string
+                  format: ObjectId
+                offer:
+                  $ref: '#/components/schemas/SignalingOffer'
       responses:
         '200':
           $ref: '#/components/responses/CallResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+  /call/answer:
+    post:
+      summary: Answer a call
+      operationId: answerCall
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - accept
+              properties:
+                callId:
+                  type: string
+                  format: ObjectId
+                accept:
+                  type: boolean
+                answer:
+                  $ref: '#/components/schemas/SignalingAnswer'
+      responses:
+        '200':
+          $ref: '#/components/responses/EmptyResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+  /call/candidate:
+    post:
+      summary: Post a new signaling canidate
+      operationId: postNewSignalingCandidate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                callId:
+                  type: string
+                  format: ObjectId
+                candidate:
+                  $ref: '#/components/schemas/SignalingCandidate'
+      responses:
+        '200':
+          $ref: '#/components/responses/EmptyResponse'
         '400':
           $ref: '#/components/responses/BadRequestResponse'
         '403':
@@ -73,14 +131,31 @@ components:
       type: object
       required:
         - type
-        - peerId
       properties:
-        type:
-          type: string
         sdp:
           type: string
-        peerId:
+        type:
+          type: string
+    SignalingAnswer:
+      type: object
+      required:
+        - type
+      properties:
+        sdp:
+          type: string
+        type:
+          type: string
+    SignalingCandidate:
+      type: object
+      properties:
+        candidate:
+          type: string
+        sdpMLineIndex:
           type: number
+        sdpMid:
+          type: string
+        usernameFragment:
+          type: string
     Error:
       type: object
       required:

@@ -6,9 +6,9 @@ info:
     Y-Chat Notification API
 defaultContentType: application/json
 servers:
-    dev:
-      url: localhost:28092
-      protocol: kafka
+  dev:
+    url: localhost:28092
+    protocol: kafka
 channels:
   notification-notification:
     publish:
@@ -68,15 +68,92 @@ components:
               type: string
               format: ObjectId
         transactionComplete:
-          chatId:
+          type: object
+          required:
+            - chatId
+            - messageId
+            - transactionId
+          properties:
+            chatId:
               type: string
               format: ObjectId
-          messageId:
-            type: string
-            format: ObjectId
-          transactionId:
-            type: string
-            format: ObjectId
+            messageId:
+              type: string
+              format: ObjectId
+            transactionId:
+              type: string
+              format: ObjectId
+        signalingNewOffer:
+          type: object
+          required:
+            - callId
+            - callerId
+            - offer
+          properties:
+            callId:
+              type: string
+              format: ObjectId
+            callerId:
+              type: string
+              format: ObjectId
+            offer:
+              $ref: '#/components/schemas/SignalingOffer'
+        signalingNewAnswer:
+          type: object
+          required:
+            - callId
+            - calleeId
+            - answer
+          properties:
+            callId:
+              type: string
+              format: ObjectId
+            calleeId:
+              type: string
+              format: ObjectId
+            answer:
+              $ref: '#/components/schemas/SignalingAnswer'
+        signalingNewCandidate:
+          type: object
+          required:
+            - callId
+          properties:
+            callId:
+              type: string
+              format: ObjectId
+            offerCandidate:
+              $ref: '#/components/schemas/SignalingCandidate'
+            answerCandidate:
+              $ref: '#/components/schemas/SignalingCandidate'
+    SignalingOffer:
+      type: object
+      required:
+        - type
+      properties:
+        sdp:
+          type: string
+        type:
+          type: string
+    SignalingAnswer:
+      type: object
+      required:
+        - type
+      properties:
+        sdp:
+          type: string
+        type:
+          type: string
+    SignalingCandidate:
+      type: object
+      properties:
+        candidate:
+          type: string
+        sdpMLineIndex:
+          type: number
+        sdpMid:
+          type: string
+        usernameFragment:
+          type: string
     Error:
       type: object
       required:
