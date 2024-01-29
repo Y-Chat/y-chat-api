@@ -1,6 +1,7 @@
 openapi: 3.0.1
 info:
   title: Social Service API
+  version: 1.0.0
 servers:
 - url: http://localhost:38080
   description: Generated server url
