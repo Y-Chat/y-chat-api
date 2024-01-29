@@ -101,9 +101,8 @@ components:
           type: string
           format: ObjectId
           readOnly: true
-        mediaId:
+        mediaPath:
           type: string
-          format: ObjectId
         sentTimestamp:
           type: string
           format: date-time
