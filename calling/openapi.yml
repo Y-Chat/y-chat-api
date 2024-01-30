@@ -83,6 +83,29 @@ paths:
           $ref: '#/components/responses/BadRequestResponse'
         '403':
           $ref: '#/components/responses/ForbiddenResponse'
+  /call/end:
+    post:
+      summary: End a video call
+      operationId: endCall
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                callId:
+                  type: string
+                  format: ObjectId
+                receiverId:
+                  type: string
+                  format: ObjectId
+      responses:
+        '200':
+          $ref: '#/components/responses/EmptyResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
 components:
   securitySchemes:
     bearerAuth:
