@@ -63,7 +63,7 @@ paths:
           $ref: '#/components/responses/ForbiddenResponse'
   /call/candidate:
     post:
-      summary: Post a new signaling canidate
+      summary: Post a new signaling candidate
       operationId: postNewSignalingCandidate
       requestBody:
         content:

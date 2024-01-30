@@ -38,7 +38,6 @@ components:
           properties:
             chatId:
               type: string
-              format: ObjectId
         updatedMessage:
           type:  object
           required:
@@ -47,10 +46,8 @@ components:
           properties:
             chatId:
               type: string
-              format: ObjectId
             messageId:
               type: string
-              format: ObjectId
         mediaUploaded:
           type:  object
           required:
@@ -60,13 +57,10 @@ components:
           properties:
             chatId:
               type: string
-              format: ObjectId
             messageId:
               type: string
-              format: ObjectId
             mediaId:
               type: string
-              format: ObjectId
         transactionComplete:
           type: object
           required:
@@ -76,13 +70,10 @@ components:
           properties:
             chatId:
               type: string
-              format: ObjectId
             messageId:
               type: string
-              format: ObjectId
             transactionId:
               type: string
-              format: ObjectId
         signalingNewOffer:
           type: object
           required:
@@ -92,10 +83,10 @@ components:
           properties:
             callId:
               type: string
-              format: ObjectId
+            calleeId:
+              type: string
             callerId:
               type: string
-              format: ObjectId
             offer:
               $ref: '#/components/schemas/SignalingOffer'
         signalingNewAnswer:
@@ -107,24 +98,35 @@ components:
           properties:
             callId:
               type: string
-              format: ObjectId
             calleeId:
               type: string
-              format: ObjectId
+            callerId:
+              type: string
             answer:
               $ref: '#/components/schemas/SignalingAnswer'
         signalingNewCandidate:
           type: object
           required:
             - callId
+            - receiverId
+            - candidate
           properties:
             callId:
               type: string
-              format: ObjectId
-            offerCandidate:
+            receiverId:
+              type: string
+            candidate:
               $ref: '#/components/schemas/SignalingCandidate'
-            answerCandidate:
-              $ref: '#/components/schemas/SignalingCandidate'
+        callEnded:
+          type: object
+          required:
+            - callId
+            - receiverId
+          properties:
+            callId:
+              type: string
+            receiverId:
+              type: string
     SignalingOffer:
       type: object
       required:
