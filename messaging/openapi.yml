@@ -34,6 +34,7 @@ paths:
         - $ref: '#/components/parameters/fromDate'
         - $ref: '#/components/parameters/page'
         - $ref: '#/components/parameters/pageSize'
+        - $ref: '#/components/parameters/direction'
       responses:
         '200':
           $ref: '#/components/responses/MessagesResponse'
@@ -76,7 +77,18 @@ components:
       schema:
         type: string
         format: date-time
+    direction:
+      in: query
+      required: false
+      name: direction
+      schema:
+        $ref: "#/components/schemas/MessageFetchDirection"
   schemas:
+    MessageFetchDirection:
+      type: string
+      enum:
+        - future
+        - past
     Message:
       type: object
       required:
