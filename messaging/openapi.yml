@@ -87,8 +87,8 @@ components:
     MessageFetchDirection:
       type: string
       enum:
-        - future
-        - past
+        - FUTURE
+        - PAST
     Message:
       type: object
       required:
