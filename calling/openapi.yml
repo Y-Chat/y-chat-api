@@ -61,6 +61,28 @@ paths:
           $ref: '#/components/responses/BadRequestResponse'
         '403':
           $ref: '#/components/responses/ForbiddenResponse'
+  /call/candidates:
+    get:
+      summary: Get all signaling candidates for a call
+      operationId: getSignalingCandidates
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - callId
+              properties:
+                callId:
+                  type: string
+                  format: ObjectId
+      responses:
+        '200':
+          $ref: '#/components/responses/CandidatesResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
   /call/candidate:
     post:
       summary: Post a new signaling candidate
@@ -70,6 +92,9 @@ paths:
           application/json:
             schema:
               type: object
+              required:
+                - callId
+                - candidate
               properties:
                 callId:
                   type: string
@@ -188,6 +213,14 @@ components:
         message:
           type: string
   responses:
+    CandidatesResponse:
+      description: Candidates response
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/SignalingCandidate'
     CallResponse:
       description: Call response
       content:
