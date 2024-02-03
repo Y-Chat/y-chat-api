@@ -66,7 +66,7 @@ paths:
       summary: Get all signaling candidates for a call
       operationId: getSignalingCandidates
       parameters:
-        - $ref: '#/components/parameters/chatId'
+        - $ref: '#/components/parameters/callId'
       responses:
         '200':
           $ref: '#/components/responses/CandidatesResponse'
@@ -126,10 +126,10 @@ components:
       scheme: bearer
       bearerFormat: JWT
   parameters:
-    chatId:
+    callId:
       in: query
       required: true
-      name: chatId
+      name: callId
       schema:
         type: string
         format: ObjectId
