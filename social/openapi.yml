@@ -1,21 +1,37 @@
 openapi: 3.0.1
 info:
   title: Social Service API
-  version: 1.0.0
 servers:
 - url: http://localhost:38080
   description: Generated server url
 tags:
+- name: Users Endpoint
+  description: Manage the user as they exist in the Y-Chat domain. The lifetime of
+    a user is owned by the service providing authentication. The user email is transported
+    via the JWT.
+- name: Chats Endpoint
+  description: "Manage chats, an abstraction over group and direct chats. Specifically,\
+    \ all operations common to both group and direct chats. A direct chat cannot be\
+    \ deleted explicitly but is deleted once both users have either been deleted or\
+    \ set the chat status to deleted."
+- name: Groups Endpoint
+  description: "Manage groups, a collection of users with a chat. In reality, a group\
+    \ is also a type of chat, thus the group id can be used at the Chats endpoint.\
+    \ A group cannot be explicitly deleted, it is deleted once all users have left\
+    \ the group. A deleted user automatically leaves the group."
 - name: Internal Endpoint
   description: Specialised endpoints for the use of internal services. Cannot be requested
     from outside the API gateway and does not require authentication.
 paths:
   /users:
     post:
+      tags:
+      - Users Endpoint
       summary: Create a user with an initial profile.
       description: "One cannot create a user which exists already. If the profile\
         \ description is empty, a default value is used. ProfilePictureId is optional.\
-        \ The other fields are required. RemoveProfilePicture must be null."
+        \ The other fields are required. RemoveProfilePicture must be null. The email\
+        \ must not exist in the system yet."
       operationId: createUser
       parameters:
       - name: userId
@@ -31,6 +47,12 @@ paths:
               $ref: '#/components/schemas/UserProfileDTO'
         required: true
       responses:
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
         "400":
           description: Illegal user input
           content:
@@ -50,13 +72,7 @@ paths:
               schema:
                 type: string
         "403":
-          description: Limit reached
-          content:
-            application/json:
-              schema:
-                type: string
-        "500":
-          description: Unexpected exception thrown
+          description: Access denied
           content:
             application/json:
               schema:
@@ -69,6 +85,8 @@ paths:
                 $ref: '#/components/schemas/UserDTO'
   /users/{userId}/blockedUsers:
     get:
+      tags:
+      - Users Endpoint
       summary: Fetch the blocklist for a user.
       description: "Returns a page of ids, profiles, and timestamps when the user\
         \ has been blocked. Page size is not allowed to exceed 1000."
@@ -86,6 +104,12 @@ paths:
         schema:
           $ref: '#/components/schemas/Pageable'
       responses:
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
         "400":
           description: Illegal user input
           content:
@@ -105,13 +129,7 @@ paths:
               schema:
                 type: string
         "403":
-          description: Limit reached
-          content:
-            application/json:
-              schema:
-                type: string
-        "500":
-          description: Unexpected exception thrown
+          description: Access denied
           content:
             application/json:
               schema:
@@ -123,6 +141,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/PageBlockedUserDTO'
     post:
+      tags:
+      - Users Endpoint
       summary: Add a user to the blocklist.
       description: A user cannot block themselves. There is a limit on the number
         of users a user can block. A user cannot block a user that they have already
@@ -142,6 +162,12 @@ paths:
           type: string
           format: uuid
       responses:
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
         "400":
           description: Illegal user input
           content:
@@ -161,13 +187,7 @@ paths:
               schema:
                 type: string
         "403":
-          description: Limit reached
-          content:
-            application/json:
-              schema:
-                type: string
-        "500":
-          description: Unexpected exception thrown
+          description: Access denied
           content:
             application/json:
               schema:
@@ -179,6 +199,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/BlockedUserDTO'
     delete:
+      tags:
+      - Users Endpoint
       summary: Remove a user from the blocklist.
       description: One cannot remove a user which has not been blocked.
       operationId: removeBlockedUser
@@ -196,6 +218,12 @@ paths:
           type: string
           format: uuid
       responses:
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
         "400":
           description: Illegal user input
           content:
@@ -215,21 +243,17 @@ paths:
               schema:
                 type: string
         "403":
-          description: Limit reached
+          description: Access denied
           content:
             application/json:
               schema:
                 type: string
-        "500":
-          description: Unexpected exception thrown
-          content:
-            application/json:
-              schema:
-                type: string
-        "200":
-          description: OK
+        "204":
+          description: No Content
   /groups:
     post:
+      tags:
+      - Groups Endpoint
       summary: Create a group with an initial user.
       description: The initial user is the only member and admin of the newly created
         group. The name field of group profile is required. If no description is provided
@@ -250,6 +274,12 @@ paths:
               $ref: '#/components/schemas/GroupProfileDTO'
         required: true
       responses:
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
         "400":
           description: Illegal user input
           content:
@@ -269,13 +299,7 @@ paths:
               schema:
                 type: string
         "403":
-          description: Limit reached
-          content:
-            application/json:
-              schema:
-                type: string
-        "500":
-          description: Unexpected exception thrown
+          description: Access denied
           content:
             application/json:
               schema:
@@ -288,6 +312,8 @@ paths:
                 $ref: '#/components/schemas/GroupDTO'
   /groups/{groupId}/members:
     post:
+      tags:
+      - Groups Endpoint
       summary: Add a new user to the group.
       description: The new user is added as a GROUP_MEMBER. One cannot add someone
         who is already part of the group. Returns the same object as getChatMember.
@@ -306,6 +332,12 @@ paths:
           type: string
           format: uuid
       responses:
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
         "400":
           description: Illegal user input
           content:
@@ -325,13 +357,7 @@ paths:
               schema:
                 type: string
         "403":
-          description: Limit reached
-          content:
-            application/json:
-              schema:
-                type: string
-        "500":
-          description: Unexpected exception thrown
+          description: Access denied
           content:
             application/json:
               schema:
@@ -343,8 +369,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/ChatMemberDTO'
     delete:
+      tags:
+      - Groups Endpoint
       summary: Remove a member from a group.
-      description: One cannot remove someone who is not a member of the group.
+      description: "One cannot remove someone who is not a member of the group. If\
+        \ the last admin of the group removes themselves, another member is promoted\
+        \ to admin at random."
       operationId: removeGroupMember
       parameters:
       - name: groupId
@@ -360,6 +390,12 @@ paths:
           type: string
           format: uuid
       responses:
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
         "400":
           description: Illegal user input
           content:
@@ -379,21 +415,17 @@ paths:
               schema:
                 type: string
         "403":
-          description: Limit reached
+          description: Access denied
           content:
             application/json:
               schema:
                 type: string
-        "500":
-          description: Unexpected exception thrown
-          content:
-            application/json:
-              schema:
-                type: string
-        "200":
-          description: OK
+        "204":
+          description: No Content
   /chats/directChats:
     post:
+      tags:
+      - Chats Endpoint
       summary: Create a direct chat between two users.
       description: A user cannot create a chat with themselves and there cannot exist
         more than one chat between two users. Returns the same object as getChat.
@@ -413,6 +445,12 @@ paths:
           type: string
           format: uuid
       responses:
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
         "400":
           description: Illegal user input
           content:
@@ -432,13 +470,7 @@ paths:
               schema:
                 type: string
         "403":
-          description: Limit reached
-          content:
-            application/json:
-              schema:
-                type: string
-        "500":
-          description: Unexpected exception thrown
+          description: Access denied
           content:
             application/json:
               schema:
@@ -451,6 +483,8 @@ paths:
                 $ref: '#/components/schemas/ChatDTO'
   /users/{userId}/settings:
     get:
+      tags:
+      - Users Endpoint
       summary: Fetch the settings for a user.
       description: All returned fields are populated.
       operationId: getUserSettings
@@ -462,6 +496,12 @@ paths:
           type: string
           format: uuid
       responses:
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
         "400":
           description: Illegal user input
           content:
@@ -481,13 +521,7 @@ paths:
               schema:
                 type: string
         "403":
-          description: Limit reached
-          content:
-            application/json:
-              schema:
-                type: string
-        "500":
-          description: Unexpected exception thrown
+          description: Access denied
           content:
             application/json:
               schema:
@@ -499,6 +533,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/UserSettingsDTO'
     patch:
+      tags:
+      - Users Endpoint
       summary: Update the settings for a user.
       description: All given fields are updated. Returns the same object as getUserSettings.
       operationId: updateUserSettings
@@ -516,6 +552,12 @@ paths:
               $ref: '#/components/schemas/UserSettingsDTO'
         required: true
       responses:
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
         "400":
           description: Illegal user input
           content:
@@ -535,13 +577,7 @@ paths:
               schema:
                 type: string
         "403":
-          description: Limit reached
-          content:
-            application/json:
-              schema:
-                type: string
-        "500":
-          description: Unexpected exception thrown
+          description: Access denied
           content:
             application/json:
               schema:
@@ -554,6 +590,8 @@ paths:
                 $ref: '#/components/schemas/UserSettingsDTO'
   /users/{userId}/profile:
     get:
+      tags:
+      - Users Endpoint
       summary: Fetch the profile of a user.
       description: All returned fields are populated. RemoveProfilePictureId is null.
       operationId: getUserProfile
@@ -565,6 +603,12 @@ paths:
           type: string
           format: uuid
       responses:
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
         "400":
           description: Illegal user input
           content:
@@ -584,13 +628,7 @@ paths:
               schema:
                 type: string
         "403":
-          description: Limit reached
-          content:
-            application/json:
-              schema:
-                type: string
-        "500":
-          description: Unexpected exception thrown
+          description: Access denied
           content:
             application/json:
               schema:
@@ -602,6 +640,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/UserProfileDTO'
     patch:
+      tags:
+      - Users Endpoint
       summary: Update the profile of a user.
       description: "All given fields are updated. To remove the profilePictureId,\
         \ set the field to null and removeProfilePictureId to true. Returns the same\
@@ -621,6 +661,12 @@ paths:
               $ref: '#/components/schemas/UserProfileDTO'
         required: true
       responses:
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
         "400":
           description: Illegal user input
           content:
@@ -640,13 +686,7 @@ paths:
               schema:
                 type: string
         "403":
-          description: Limit reached
-          content:
-            application/json:
-              schema:
-                type: string
-        "500":
-          description: Unexpected exception thrown
+          description: Access denied
           content:
             application/json:
               schema:
@@ -659,6 +699,8 @@ paths:
                 $ref: '#/components/schemas/UserProfileDTO'
   /groups/{groupId}/profile:
     get:
+      tags:
+      - Groups Endpoint
       summary: Fetch the group profile for a given group.
       description: All returned fields are populated. RemoveProfilePictureId is null.
       operationId: getGroupProfile
@@ -670,6 +712,12 @@ paths:
           type: string
           format: uuid
       responses:
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
         "400":
           description: Illegal user input
           content:
@@ -689,13 +737,7 @@ paths:
               schema:
                 type: string
         "403":
-          description: Limit reached
-          content:
-            application/json:
-              schema:
-                type: string
-        "500":
-          description: Unexpected exception thrown
+          description: Access denied
           content:
             application/json:
               schema:
@@ -707,6 +749,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/GroupProfileDTO'
     patch:
+      tags:
+      - Groups Endpoint
       summary: Update the group profile for a given group.
       description: "All given fields are updated. To remove the profilePictureId,\
         \ set the field to null and removeProfilePictureId to true."
@@ -725,6 +769,12 @@ paths:
               $ref: '#/components/schemas/GroupProfileDTO'
         required: true
       responses:
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
         "400":
           description: Illegal user input
           content:
@@ -744,13 +794,7 @@ paths:
               schema:
                 type: string
         "403":
-          description: Limit reached
-          content:
-            application/json:
-              schema:
-                type: string
-        "500":
-          description: Unexpected exception thrown
+          description: Access denied
           content:
             application/json:
               schema:
@@ -763,6 +807,8 @@ paths:
                 $ref: '#/components/schemas/GroupProfileDTO'
   /groups/{groupId}/members/{userId}/role:
     get:
+      tags:
+      - Groups Endpoint
       summary: Fetch the role of a user for a group.
       description: "If the user is not part of the group, NOT_A_MEMBER is returned."
       operationId: getGroupRole
@@ -780,6 +826,12 @@ paths:
           type: string
           format: uuid
       responses:
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
         "400":
           description: Illegal user input
           content:
@@ -799,13 +851,7 @@ paths:
               schema:
                 type: string
         "403":
-          description: Limit reached
-          content:
-            application/json:
-              schema:
-                type: string
-        "500":
-          description: Unexpected exception thrown
+          description: Access denied
           content:
             application/json:
               schema:
@@ -821,10 +867,14 @@ paths:
                 - GROUP_MEMBER
                 - GROUP_ADMIN
     patch:
+      tags:
+      - Groups Endpoint
       summary: Update the role of a group member for a group.
       description: One cannot update the role of a user who is not in the group. This
         endpoint cannot be used to remove someone from a group. NOT_A_MEMBER is not
-        a valid value for this endpoint.
+        a valid value for this endpoint. The requesting user must be an admin of the
+        group to perform this action. There always must be at least one admin in a
+        group.
       operationId: updateGroupRole
       parameters:
       - name: groupId
@@ -850,6 +900,12 @@ paths:
               - GROUP_ADMIN
         required: true
       responses:
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
         "400":
           description: Illegal user input
           content:
@@ -869,13 +925,7 @@ paths:
               schema:
                 type: string
         "403":
-          description: Limit reached
-          content:
-            application/json:
-              schema:
-                type: string
-        "500":
-          description: Unexpected exception thrown
+          description: Access denied
           content:
             application/json:
               schema:
@@ -892,6 +942,8 @@ paths:
                 - GROUP_ADMIN
   /chats/{chatId}/members/{userId}/status:
     get:
+      tags:
+      - Chats Endpoint
       summary: Fetch the chat status for a given chat and user.
       description: "If the user is not part of the chat, NOT_A_MEMBER is returned."
       operationId: getChatStatus
@@ -909,6 +961,12 @@ paths:
           type: string
           format: uuid
       responses:
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
         "400":
           description: Illegal user input
           content:
@@ -928,13 +986,7 @@ paths:
               schema:
                 type: string
         "403":
-          description: Limit reached
-          content:
-            application/json:
-              schema:
-                type: string
-        "500":
-          description: Unexpected exception thrown
+          description: Access denied
           content:
             application/json:
               schema:
@@ -951,6 +1003,8 @@ paths:
                 - ARCHIVED
                 - ACTIVE
     patch:
+      tags:
+      - Chats Endpoint
       summary: Update the chat status for a given chat and user.
       description: "One cannot update the chat status of a user who is not a member\
         \ of the chat. Direct chats are not allowed to be set to NOT_A_MEMBER. Group\
@@ -983,6 +1037,12 @@ paths:
               - ACTIVE
         required: true
       responses:
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
         "400":
           description: Illegal user input
           content:
@@ -1002,13 +1062,7 @@ paths:
               schema:
                 type: string
         "403":
-          description: Limit reached
-          content:
-            application/json:
-              schema:
-                type: string
-        "500":
-          description: Unexpected exception thrown
+          description: Access denied
           content:
             application/json:
               schema:
@@ -1026,6 +1080,8 @@ paths:
                 - ACTIVE
   /users/{userId}:
     get:
+      tags:
+      - Users Endpoint
       summary: Fetch the general information about a user.
       description: "Returns the user id, profile, and settings."
       operationId: getUser
@@ -1037,6 +1093,12 @@ paths:
           type: string
           format: uuid
       responses:
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
         "400":
           description: Illegal user input
           content:
@@ -1056,13 +1118,7 @@ paths:
               schema:
                 type: string
         "403":
-          description: Limit reached
-          content:
-            application/json:
-              schema:
-                type: string
-        "500":
-          description: Unexpected exception thrown
+          description: Access denied
           content:
             application/json:
               schema:
@@ -1074,6 +1130,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/UserDTO'
     delete:
+      tags:
+      - Users Endpoint
       summary: Delete a user from the Social service.
       description: The deletion process includes all blocked relations and all chat
         memberships.
@@ -1086,6 +1144,12 @@ paths:
           type: string
           format: uuid
       responses:
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
         "400":
           description: Illegal user input
           content:
@@ -1105,21 +1169,17 @@ paths:
               schema:
                 type: string
         "403":
-          description: Limit reached
+          description: Access denied
           content:
             application/json:
               schema:
                 type: string
-        "500":
-          description: Unexpected exception thrown
-          content:
-            application/json:
-              schema:
-                type: string
-        "200":
-          description: OK
+        "204":
+          description: No Content
   /users/{userId}/blockedUsers/{isBlockedId}:
     get:
+      tags:
+      - Users Endpoint
       summary: Check whether a given user has another user blocked.
       description: "Returns null, if the user is not blocked. Returns a timestamp\
         \ corresponding to the block time, if the user is blocked."
@@ -1138,6 +1198,12 @@ paths:
           type: string
           format: uuid
       responses:
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
         "400":
           description: Illegal user input
           content:
@@ -1157,13 +1223,7 @@ paths:
               schema:
                 type: string
         "403":
-          description: Limit reached
-          content:
-            application/json:
-              schema:
-                type: string
-        "500":
-          description: Unexpected exception thrown
+          description: Access denied
           content:
             application/json:
               schema:
@@ -1175,15 +1235,26 @@ paths:
               schema:
                 type: string
                 format: date-time
-  /internal/canReceive:
+  /users/byEmail:
     get:
       tags:
-      - Internal Endpoint
-      summary: TODO
-      description: TODO define what it returns exactly
-      operationId: canReceive
-      parameters: []
+      - Users Endpoint
+      summary: Get the user id for an email.
+      description: Returns the user id if it exists.
+      operationId: getUserIdByEmail
+      parameters:
+      - name: email
+        in: query
+        required: true
+        schema:
+          type: string
       responses:
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
         "400":
           description: Illegal user input
           content:
@@ -1203,21 +1274,80 @@ paths:
               schema:
                 type: string
         "403":
-          description: Limit reached
-          content:
-            application/json:
-              schema:
-                type: string
-        "500":
-          description: Unexpected exception thrown
+          description: Access denied
           content:
             application/json:
               schema:
                 type: string
         "200":
           description: OK
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: uuid
+  /internal/{userId}/shouldReceive/{chatId}:
+    get:
+      tags:
+      - Internal Endpoint
+      summary: Check for a given user if they should receive a message sent to the
+        given chat.
+      description: Returns a boolean value which responds to the action.
+      operationId: shouldReceive
+      parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: chatId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
+        "400":
+          description: Illegal user input
+          content:
+            application/json:
+              schema:
+                type: string
+        "409":
+          description: Entity exists already
+          content:
+            application/json:
+              schema:
+                type: string
+        "404":
+          description: Entity not found
+          content:
+            application/json:
+              schema:
+                type: string
+        "403":
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                type: string
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: boolean
   /groups/{groupId}:
     get:
+      tags:
+      - Groups Endpoint
       summary: Fetch the information about a group.
       description: Returns the group id and group profile.
       operationId: getGroup
@@ -1229,6 +1359,12 @@ paths:
           type: string
           format: uuid
       responses:
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
         "400":
           description: Illegal user input
           content:
@@ -1248,13 +1384,7 @@ paths:
               schema:
                 type: string
         "403":
-          description: Limit reached
-          content:
-            application/json:
-              schema:
-                type: string
-        "500":
-          description: Unexpected exception thrown
+          description: Access denied
           content:
             application/json:
               schema:
@@ -1267,6 +1397,8 @@ paths:
                 $ref: '#/components/schemas/GroupDTO'
   /chats:
     get:
+      tags:
+      - Chats Endpoint
       summary: Fetch all chats which a user is part of.
       description: Returns a page of the same objects that getChat returns. Page size
         is not allowed to exceed 1000.
@@ -1284,6 +1416,12 @@ paths:
         schema:
           $ref: '#/components/schemas/Pageable'
       responses:
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
         "400":
           description: Illegal user input
           content:
@@ -1303,13 +1441,7 @@ paths:
               schema:
                 type: string
         "403":
-          description: Limit reached
-          content:
-            application/json:
-              schema:
-                type: string
-        "500":
-          description: Unexpected exception thrown
+          description: Access denied
           content:
             application/json:
               schema:
@@ -1322,6 +1454,8 @@ paths:
                 $ref: '#/components/schemas/PageChatDTO'
   /chats/{chatId}:
     get:
+      tags:
+      - Chats Endpoint
       summary: Fetch the general information about a chat for specific user.
       description: "Returns the chat id and chat type. If it is a group chat, the\
         \ group profile will also be returned. If it is direct chat, the user profile\
@@ -1343,6 +1477,12 @@ paths:
           type: string
           format: uuid
       responses:
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
         "400":
           description: Illegal user input
           content:
@@ -1362,13 +1502,7 @@ paths:
               schema:
                 type: string
         "403":
-          description: Limit reached
-          content:
-            application/json:
-              schema:
-                type: string
-        "500":
-          description: Unexpected exception thrown
+          description: Access denied
           content:
             application/json:
               schema:
@@ -1381,6 +1515,8 @@ paths:
                 $ref: '#/components/schemas/ChatDTO'
   /chats/{chatId}/members:
     get:
+      tags:
+      - Chats Endpoint
       summary: Fetch all members of a chat.
       description: "Returns the user ids, profiles, and if it is a group chat, also\
         \ the roles of each member. Page size is not allowed to exceed 1000."
@@ -1392,12 +1528,24 @@ paths:
         schema:
           type: string
           format: uuid
+      - name: userId
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uuid
       - name: pageable
         in: query
         required: true
         schema:
           $ref: '#/components/schemas/Pageable'
       responses:
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
         "400":
           description: Illegal user input
           content:
@@ -1417,13 +1565,7 @@ paths:
               schema:
                 type: string
         "403":
-          description: Limit reached
-          content:
-            application/json:
-              schema:
-                type: string
-        "500":
-          description: Unexpected exception thrown
+          description: Access denied
           content:
             application/json:
               schema:
@@ -1452,7 +1594,6 @@ components:
           type: string
         profilePictureId:
           type: string
-          format: uuid
         removeProfilePictureId:
           type: boolean
         profileDescription:
@@ -1506,7 +1647,6 @@ components:
           type: string
         profilePictureId:
           type: string
-          format: uuid
         removeProfilePictureId:
           type: boolean
         profileDescription:
@@ -1600,13 +1740,13 @@ components:
           $ref: '#/components/schemas/SortObject'
         pageable:
           $ref: '#/components/schemas/PageableObject'
-        numberOfElements:
-          type: integer
-          format: int32
         first:
           type: boolean
         last:
           type: boolean
+        numberOfElements:
+          type: integer
+          format: int32
         empty:
           type: boolean
     PageableObject:
@@ -1623,9 +1763,9 @@ components:
         pageSize:
           type: integer
           format: int32
-        paged:
-          type: boolean
         unpaged:
+          type: boolean
+        paged:
           type: boolean
     SortObject:
       type: object
@@ -1659,13 +1799,13 @@ components:
           $ref: '#/components/schemas/SortObject'
         pageable:
           $ref: '#/components/schemas/PageableObject'
-        numberOfElements:
-          type: integer
-          format: int32
         first:
           type: boolean
         last:
           type: boolean
+        numberOfElements:
+          type: integer
+          format: int32
         empty:
           type: boolean
     PageChatMemberDTO:
@@ -1691,12 +1831,12 @@ components:
           $ref: '#/components/schemas/SortObject'
         pageable:
           $ref: '#/components/schemas/PageableObject'
-        numberOfElements:
-          type: integer
-          format: int32
         first:
           type: boolean
         last:
           type: boolean
+        numberOfElements:
+          type: integer
+          format: int32
         empty:
           type: boolean
