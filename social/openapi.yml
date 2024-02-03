@@ -1228,6 +1228,67 @@ paths:
               schema:
                 type: string
                 format: uuid
+  /internal/{chatId}/members:
+    get:
+      summary: Fetch all members of a chat.
+      description: "Returns the user ids, profiles, and if it is a group chat, also\
+        \ the roles of each member. Page size is not allowed to exceed 1000."
+      operationId: getChatMembers
+      parameters:
+        - name: chatId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: pageable
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/Pageable'
+      responses:
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
+        "400":
+          description: Illegal user input
+          content:
+            application/json:
+              schema:
+                type: string
+        "409":
+          description: Entity exists already
+          content:
+            application/json:
+              schema:
+                type: string
+        "404":
+          description: Entity not found
+          content:
+            application/json:
+              schema:
+                type: string
+        "403":
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                type: string
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/PageChatMemberDTO'
   /internal/{userId}/shouldReceive/{chatId}:
     get:
       tags:
