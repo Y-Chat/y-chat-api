@@ -1244,12 +1244,6 @@ paths:
           schema:
             type: string
             format: uuid
-        - name: userId
-          in: query
-          required: true
-          schema:
-            type: string
-            format: uuid
         - name: pageable
           in: query
           required: true
