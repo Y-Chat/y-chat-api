@@ -1231,6 +1231,8 @@ paths:
                 format: uuid
   /internal/{chatId}/members:
     get:
+      tags:
+        - Internal Endpoint
       summary: Fetch all members of a chat.
       description: "Returns the user ids, profiles, and if it is a group chat, also\
         \ the roles of each member. Page size is not allowed to exceed 1000."
