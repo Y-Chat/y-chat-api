@@ -287,25 +287,25 @@ paths:
             '*/*':
               schema:
                 $ref: '#/components/schemas/GroupDTO'
-  /groups/{groupId}/members:
+  /groups/{groupId}/member:
     post:
       summary: Add a new user to the group.
       description: The new user is added as a GROUP_MEMBER. One cannot add someone
         who is already part of the group. Returns the same object as getChatMember.
       operationId: addGroupMember
       parameters:
-      - name: groupId
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
-      - name: userId
-        in: query
-        required: true
-        schema:
-          type: string
-          format: uuid
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
       responses:
         "500":
           description: Unexpected exception thrown
@@ -343,6 +343,65 @@ paths:
             '*/*':
               schema:
                 $ref: '#/components/schemas/ChatMemberDTO'
+  /groups/{groupId}/members:
+    post:
+      summary: Add new users to the group via their email.
+      description: The new users are added as a GROUP_MEMBER. If some emails could not be found they fail silently
+      operationId: addGroupMembers
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+
+      responses:
+        "500":
+          description: Unexpected exception thrown
+          content:
+            application/json:
+              schema:
+                type: string
+        "400":
+          description: Illegal user input
+          content:
+            application/json:
+              schema:
+                type: string
+        "409":
+          description: Entity exists already
+          content:
+            application/json:
+              schema:
+                type: string
+        "404":
+          description: Entity not found
+          content:
+            application/json:
+              schema:
+                type: string
+        "403":
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                type: string
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChatMemberDTO'
     delete:
       summary: Remove a member from a group.
       description: "One cannot remove someone who is not a member of the group. If\

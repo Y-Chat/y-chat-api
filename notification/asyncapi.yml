@@ -35,8 +35,11 @@ components:
           type:  object
           required:
             - chatId
+            - senderId
           properties:
             chatId:
+              type: string
+            senderId:
               type: string
         updatedMessage:
           type:  object
